@@ -2,141 +2,135 @@ import random
 
 # Tabela de restrições
 restricoes = {
-    "Analise 1": ["Espectrofotômetro UV-VIS", "Cromatógrafo Gasoso"],
-    "Analise 2": ["Cromatógrafo Líquido", "Espectrômetro Infravermelho"],
-    "Analise 3": ["Microscópio", "Balança Analítica"],
-    "Analise 4": ["Espectrômetro de Massa"],
-    "Analise 5": ["Agitador Magnético", "Espectrômetro Infravermelho"],
-    "Analise 6": ["Cromatógrafo Líquido", "Espectrofotômetro UV-VIS"],
-    "Analise 7": ["Espectrofotômetro UV-VIS", "Microscópio"],
-    "Analise 8": ["Cromatógrafo Gasoso"],
-    "Analise 9": ["Espectrômetro Infravermelho", "Balança Analítica"],
-    "Analise 10": ["Espectrômetro de Massa", "Cromatógrafo Gasoso"]
+    "Analise 1": ["EspectrofotômetroUV-VIS", "CromatógrafoGasoso"],
+    "Analise 2": ["CromatógrafoLíquido", "EspectrômetroInfravermelho"],
+    "Analise 3": ["Microscópio", "BalançaAnalítica"],
+    "Analise 4": ["EspectrômetrodeMassa"],
+    "Analise 5": ["AgitadorMagnético", "EspectrômetroInfravermelho"],
+    "Analise 6": ["CromatógrafoLíquido", "EspectrofotômetroUV-VIS"],
+    "Analise 7": ["EspectrofotômetroUV-VIS", "Microscópio"],
+    "Analise 8": ["CromatógrafoGasoso"],
+    "Analise 9": ["EspectrômetroInfravermelho", "BalançaAnalítica"],
+    "Analise 10": ["EspectrômetrodeMassa", "CromatógrafoGasoso"]
 }
 
 restricoes_max_horas = {
-    "Balança Analítica": 6,
-    "Agitador Magnético": 4,
-    "Cromatógrafo Líquido": 8,
-    "Cromatógrafo Gasoso": 6,
-    "Espectrofotômetro UV-VIS": 4,
-    "Espectrômetro Infravermelho": 6,
-    "Espectrômetro de Massa": 4,
+    "BalançaAnalítica": 6,
+    "AgitadorMagnético": 4,
+    "CromatógrafoLíquido": 8,
+    "CromatógrafoGasoso": 6,
+    "EspectrofotômetroUV-VIS": 4,
+    "EspectrômetroInfravermelho": 6,
+    "EspectrômetrodeMassa": 4,
     "Microscópio": 6
 }
 
-EQUIP_DIA = {
-    "Balança Analítica": {"hora": 0, "analise": " "},
-    "Agitador Magnético": {"hora": 0, "analise": " "},
-    "Cromatógrafo Líquido": {"hora": 0, "analise": " "},
-    "Cromatógrafo Gasoso": {"hora": 0, "analise": " "},
-    "Espectrofotômetro UV-VIS": {"hora": 0, "analise": " "},
-    "Espectrômetro Infravermelho": {"hora": 0, "analise": " "},
-    "Espectrômetro de Massa": {"hora": 0, "analise": " "},
-    "Microscópio": {"hora": 0, "analise": " "},
-}
 
-def gerar_individuo(restricoes, equip_dia):
-    # Inicializar uma solução no formato EQUIP_DIA
-    solucao = equip_dia.copy()
-    # Criar uma lista de equipamentos
-    equipamentos = list(equip_dia.keys())
-    equipamento_em_uso = []
+EQUIP_DIA = {}
+num_instancias = 8  # Número de instâncias desejadas para cada equipamento
 
-    # Embaralhar a ordem dos equipamentos
-    random.shuffle(equipamentos)
+equipamentos = [
+    "BalançaAnalítica",
+    "AgitadorMagnético",
+    "CromatógrafoLíquido",
+    "CromatógrafoGasoso",
+    "EspectrofotômetroUV-VIS",
+    "EspectrômetroInfravermelho",
+    "EspectrômetrodeMassa",
+    "Microscópio"
+]
 
-    # Iterar sobre as análises e alocar um equipamento para cada uma, respeitando as restrições
-    for analise, equipamentos_necessarios in restricoes.items():
-        for equipamento in equipamentos:
-            if equipamento in equipamentos_necessarios and equipamento not in equipamento_em_uso:
-                equipamento_em_uso.append(equipamento)
-                solucao[equipamento]["analise"] = analise
-                break
-        else:
-            solucao[equipamento]["analise"] = "0"
-    for equipamento in equipamentos:
-        solucao[equipamento]["hora"] += 1
+for equipamento in equipamentos:
+    for i in range(1, num_instancias + 1):
+        chave = f"{equipamento} {i}"
+        EQUIP_DIA[chave] = ""
 
-    return solucao
 
-def gerar_individuo1(restricoes, equip_dia):
-    # Inicializar uma solução no formato EQUIP_DIA
-    solucao = equip_dia.copy()
-    
-    # Criar uma lista de equipamentos
-    equipamentos = list(equip_dia.keys())
-    
-    # Embaralhar a ordem dos equipamentos
-    random.shuffle(equipamentos)
-    
-    # Embaralhar a ordem das análises
-    analises_disponiveis = list(restricoes.keys())
-    random.shuffle(analises_disponiveis)
-    
-    # Atribuir uma análise aleatória para cada equipamento
-    for equipamento in equipamentos:
-        # Selecionar uma análise aleatória
-        analise_aleatoria = random.choice(analises_disponiveis)
-        solucao[equipamento]["analise"] = analise_aleatoria
-        
-        # Remover a análise selecionada das análises disponíveis
-        analises_disponiveis.remove(analise_aleatoria)
-    for equipamento in equipamentos:
-        solucao[equipamento]["hora"] += 1
-    return solucao
+def gerar_individuo_aleatorio():
+    individuo = EQUIP_DIA
+    analises = list(restricoes.keys())
+    for equipamento, info in EQUIP_DIA.items():
+        analise_aleatoria = random.choice(analises)
+        for _ in restricoes.items():
+            individuo[equipamento] = {analise_aleatoria}
+    return individuo
 
-def fitness(sol):
-    # Definir o valor máximo de fitness
-    max_fitness = len(restricoes) * 1  # Total de análises multiplicado pelo número máximo de horas
-    
-    # Inicializar o fitness atual
-    current_fitness = 0
-    
-    # Contar o número de análises distintas realizadas em todos os equipamentos
-    analises_realizadas = set()
-    equipamentos_corretos = set()
-    for equipamento, dados in sol.items():
-        # Verificar se o equipamento não excedeu o tempo máximo de uso por dia
-        if len(dados["analise"]) > 1:
-            if equipamento in restricoes[dados["analise"]]:
-                if dados["hora"] <= restricoes_max_horas[equipamento]:
-                # Verificar se uma análise foi atribuída ao equipamento
-                    if dados["analise"] != " ":
-                        analises_realizadas.add(dados["analise"])
-        else:
-            pass       
-                
-                    
-    # Calcular o fitness atual
-    current_fitness = len(analises_realizadas) + len(equipamentos_corretos)
-    
-    # Normalizar o fitness para estar entre 0 e 1
-    normalized_fitness = current_fitness / max_fitness
-    
-    return normalized_fitness
+def fitness(individuo):
+    fitness_restricao_analises = 0
 
+    # for analise, equipamentos_necessarios in restricoes.items():
+    #     for equipamento_necessario in equipamentos_necessarios:
+    #         equipamento_encontrado = False
+    #         for equipamento, info in individuo.items():
+
+    #             if equipamento_necessario in equipamento:
+    #                 equipamento_encontrado = True
+    #                 break
+    #         if not equipamento_encontrado:
+    #             penalidade += 1  # Incrementa a penalidade se o equipamento necessário não estiver presente
+
+    for equipamento, analise in individuo.items():
+        for analise_res, equipamentos_necessarios in restricoes.items():
+            if analise == {analise_res}:
+                if equipamento.split(" ")[0] in equipamentos_necessarios:
+                    fitness_restricao_analises +=1
+
+    return fitness_restricao_analises
 
 
 def mutacao(individuo):
-    # Selecionar aleatoriamente dois equipamentos distintos
-    equipamentos = list(individuo.keys())
-    equipamento1, equipamento2 = random.sample(equipamentos, 2)
-    
-    # Trocar as análises entre os dois equipamentos
-    individuo[equipamento1]["analise"], individuo[equipamento2]["analise"] = individuo[equipamento2]["analise"], individuo[equipamento1]["analise"]
-    
+    analises = list(restricoes.keys())
+    analise_aleatoria = random.choice(analises)
+    equipamentos = list(EQUIP_DIA.keys())
+    equipamento_aleatorio = random.choice(equipamentos)
+
+    individuo[equipamento_aleatorio] = {analise_aleatoria}
     return individuo
 
-# Gerar uma solução inicial
-individuo = gerar_individuo1(restricoes, EQUIP_DIA)
+def crossover(individuo1, individuo2):
+    filho = {}
+    for equipamento, analise1 in individuo1.items():
+        analise2 = individuo2.get(equipamento)
+        if analise2 is not None and random.random() < 0.5:
+            filho[equipamento] = analise2
+        else:
+            filho[equipamento] = analise1
+    return filho
 
+def selecao_torneio(populacao, num_a_manter, tamanho_torneio):
+    selecionados = []
+    for _ in range(num_a_manter):
+        torneio = random.sample(populacao, tamanho_torneio)
+        vencedor = max(torneio, key=lambda ind: fitness(ind))
+        selecionados.append(vencedor)
+    return selecionados
 
-# Imprimir a tabela da solução inicial
-print("Equipamento\tHoras\tAnálise")
-for equipamento, dados in individuo.items():
-    print(f"{equipamento}\t{dados['hora']}\t\t{dados['analise']}")
-print("\n\n")
+def algoritmo_genetico(tamanho_populacao, geracoes, tamanho_torneio):
+    populacao = [gerar_individuo_aleatorio() for _ in range(tamanho_populacao)]
+    for _ in range(geracoes):
+        populacao = selecao_torneio(populacao, tamanho_populacao // 2, tamanho_torneio)
+        while len(populacao) < tamanho_populacao:
+            pai1 = random.choice(populacao)
+            pai2 = random.choice(populacao)
+            filho = crossover(pai1, pai2)
+            if random.random() < 0.1:  # Chance de mutaçãoS
+                filho = mutacao(filho)
+               
+            populacao.append(filho)
 
+    melhor_individuo = max(populacao, key=lambda ind: fitness(ind))
+    return melhor_individuo
 
-print(fitness(individuo))    
+individuo = gerar_individuo_aleatorio()
+print(individuo)
+print(fitness(individuo))
+print(mutacao(individuo))
+individuo_mutado = mutacao(individuo)
+print(fitness(individuo_mutado))
+print(crossover(individuo, individuo_mutado))
+individuo_cross = crossover(individuo, individuo_mutado)
+print(fitness(individuo_cross))
+melhor_individuo = algoritmo_genetico(100, 1000, 2)
+print(melhor_individuo)
+print(fitness(melhor_individuo))
+
