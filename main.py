@@ -45,14 +45,58 @@ for equipamento in equipamentos:
         chave = f"{equipamento} {i}"
         EQUIP_DIA[chave] = ""
 
+def verificar_analises_iguais(individuo):
+    analises_por_indice = {}
+
+    for chave, analises in individuo.items():
+        equipamento, indice = chave.split()
+        
+        if indice not in analises_por_indice:
+            analises_por_indice[indice] = set()
+        
+        # Verifica se alguma análise deste equipamento e índice já ocorreu
+        for analise in analises:
+            if analise in analises_por_indice[indice]:
+                return True
+            else:
+                analises_por_indice[indice].add(analise)
 
 def gerar_individuo_aleatorio():
     individuo = EQUIP_DIA
     analises = list(restricoes.keys())
-    for equipamento, info in EQUIP_DIA.items():
+    for equipamento, info in individuo.items():
         analise_aleatoria = random.choice(analises)
         for _ in restricoes.items():
             individuo[equipamento] = {analise_aleatoria}
+
+
+
+    # for equipamento, info in individuo.items():
+    #     if equipamento.split()[0] == "BalançaAnalítica" and int(equipamento.split()[1]) > 6:
+    #         individuo[equipamento] = {"0"}
+            
+    # For para respeitar as condicoes de horas        
+    for equipamento in equipamentos:
+        for i in range(1, num_instancias + 1):
+            chave = f"{equipamento} {i}"
+            if equipamento == "BalançaAnalítica" and i > 6:
+                individuo[chave] = {"0"}
+            elif equipamento == "AgitadorMagnético" and i > 4:
+                individuo[chave] = {"0"}
+            elif equipamento == "CromatógrafoLíquido" and i > 8:
+                individuo[chave] = {"0"}
+            elif equipamento == "CromatógrafoGasoso" and i > 6:
+                individuo[chave] = {"0"}
+            elif equipamento == "EspectrofotômetroUV-VIS" and i > 4:
+                individuo[chave] = {"0"}
+            elif equipamento == "EspectrômetroInfravermelho" and i > 6:
+                individuo[chave] = {"0"}
+            elif equipamento == "EspectrômetrodeMassa" and i > 4:
+                individuo[chave] = {"0"}
+            elif equipamento == "Microscópio" and i > 6:
+                individuo[chave] = {"0"}
+
+
     return individuo
 
 def fitness(individuo):
@@ -79,19 +123,20 @@ def fitness(individuo):
 
 
 def mutacao(individuo):
+    
     analises = list(restricoes.keys())
     analise_aleatoria = random.choice(analises)
     equipamentos = list(EQUIP_DIA.keys())
     equipamento_aleatorio = random.choice(equipamentos)
-
-    individuo[equipamento_aleatorio] = {analise_aleatoria}
+    if individuo[equipamento_aleatorio] != {"0"}:
+        individuo[equipamento_aleatorio] = {analise_aleatoria}
     return individuo
 
 def crossover(individuo1, individuo2):
     filho = {}
     for equipamento, analise1 in individuo1.items():
         analise2 = individuo2.get(equipamento)
-        if analise2 is not None and random.random() < 0.5:
+        if analise2 is not None and random.random() < 0.5 and individuo1[equipamento] != {"0"} and individuo2[equipamento] != {"0"}:
             filho[equipamento] = analise2
         else:
             filho[equipamento] = analise1
@@ -124,13 +169,9 @@ def algoritmo_genetico(tamanho_populacao, geracoes, tamanho_torneio):
 individuo = gerar_individuo_aleatorio()
 print(individuo)
 print(fitness(individuo))
-print(mutacao(individuo))
-individuo_mutado = mutacao(individuo)
-print(fitness(individuo_mutado))
-print(crossover(individuo, individuo_mutado))
-individuo_cross = crossover(individuo, individuo_mutado)
-print(fitness(individuo_cross))
 melhor_individuo = algoritmo_genetico(100, 1000, 2)
 print(melhor_individuo)
 print(fitness(melhor_individuo))
-
+print("EQUIPAMENTO\t\t ANALISE")
+for equipamento, dados in melhor_individuo.items():
+    print(f"{equipamento}\t{dados}")
