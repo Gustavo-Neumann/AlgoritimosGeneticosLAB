@@ -45,21 +45,6 @@ for equipamento in equipamentos:
         chave = f"{equipamento} {i}"
         EQUIP_DIA[chave] = ""
 
-def verificar_analises_iguais(individuo):
-    analises_por_indice = {}
-
-    for chave, analises in individuo.items():
-        equipamento, indice = chave.split()
-        
-        if indice not in analises_por_indice:
-            analises_por_indice[indice] = set()
-        
-        # Verifica se alguma análise deste equipamento e índice já ocorreu
-        for analise in analises:
-            if analise in analises_por_indice[indice]:
-                return True
-            else:
-                analises_por_indice[indice].add(analise)
 
 def gerar_individuo_aleatorio():
     individuo = EQUIP_DIA
