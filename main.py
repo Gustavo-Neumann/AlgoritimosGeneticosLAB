@@ -72,8 +72,8 @@ def fitness(individuo):
         uso_equipamento[equipamento] += 1
         
         # Verifica se a capacidade máxima do equipamento foi excedida
-        if uso_equipamento[equipamento] > restricoes_max_horas[equipamento]:
-            punicao += 100  
+        if uso_equipamento[equipamento] > restricoes_max_horas[equipamento] and individuo[chave] != "0":
+            punicao += 200  
         
         # Verifica se a análise está sendo repetida na mesma hora
         if analise != '0':  
