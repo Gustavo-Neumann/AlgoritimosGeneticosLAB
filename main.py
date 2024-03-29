@@ -26,7 +26,6 @@ restricoes_max_horas = {
 }
 
 
-EQUIP_DIA = {}
 num_instancias = 8  # Número de instâncias desejadas para cada equipamento
 
 equipamentos = [
@@ -40,88 +39,75 @@ equipamentos = [
     "Microscópio"
 ]
 
-for equipamento in equipamentos:
-    for i in range(1, num_instancias + 1):
-        chave = f"{equipamento} {i}"
-        EQUIP_DIA[chave] = ""
 
 
 def gerar_individuo_aleatorio():
-    individuo = EQUIP_DIA
-    analises = list(restricoes.keys())
-    for equipamento, info in individuo.items():
-        analise_aleatoria = random.choice(analises)
-        for _ in restricoes.items():
-            individuo[equipamento] = {analise_aleatoria}
-
-
-
-    # for equipamento, info in individuo.items():
-    #     if equipamento.split()[0] == "BalançaAnalítica" and int(equipamento.split()[1]) > 6:
-    #         individuo[equipamento] = {"0"}
-            
-    # For para respeitar as condicoes de horas        
-    for equipamento in equipamentos:
-        for i in range(1, num_instancias + 1):
+    individuo = {}
+    for i in range(1, num_instancias + 1):
+        analises_disponiveis = list(restricoes.keys())
+        analises_disponiveis.append("0")
+        for equipamento in equipamentos:
             chave = f"{equipamento} {i}"
-            if equipamento == "BalançaAnalítica" and i > 6:
-                individuo[chave] = {"0"}
-            elif equipamento == "AgitadorMagnético" and i > 4:
-                individuo[chave] = {"0"}
-            elif equipamento == "CromatógrafoLíquido" and i > 8:
-                individuo[chave] = {"0"}
-            elif equipamento == "CromatógrafoGasoso" and i > 6:
-                individuo[chave] = {"0"}
-            elif equipamento == "EspectrofotômetroUV-VIS" and i > 4:
-                individuo[chave] = {"0"}
-            elif equipamento == "EspectrômetroInfravermelho" and i > 6:
-                individuo[chave] = {"0"}
-            elif equipamento == "EspectrômetrodeMassa" and i > 4:
-                individuo[chave] = {"0"}
-            elif equipamento == "Microscópio" and i > 6:
-                individuo[chave] = {"0"}
-
+            analise_aleatoria = random.choice(analises_disponiveis)
+            analises_disponiveis.remove(analise_aleatoria)  # Remove para evitar repetição
+            individuo[chave] = analise_aleatoria
 
     return individuo
 
 def fitness(individuo):
-    fitness_restricao_analises = 0
+    fitness_score = 0
+    punicao = 0
+    
+    # Dicionário para contar o uso de cada equipamento
+    uso_equipamento = {equipamento: 0 for equipamento in equipamentos}
+    
+    # Conjunto para rastrear as análises alocadas em cada hora
+    analises_por_hora = set()
 
-    # for analise, equipamentos_necessarios in restricoes.items():
-    #     for equipamento_necessario in equipamentos_necessarios:
-    #         equipamento_encontrado = False
-    #         for equipamento, info in individuo.items():
-
-    #             if equipamento_necessario in equipamento:
-    #                 equipamento_encontrado = True
-    #                 break
-    #         if not equipamento_encontrado:
-    #             penalidade += 1  # Incrementa a penalidade se o equipamento necessário não estiver presente
-
-    for equipamento, analise in individuo.items():
-        for analise_res, equipamentos_necessarios in restricoes.items():
-            if analise == {analise_res}:
-                if equipamento.split(" ")[0] in equipamentos_necessarios:
-                    fitness_restricao_analises +=1
-
-    return fitness_restricao_analises
+    for chave, analise in individuo.items():
+        equipamento, indice = chave.split(" ")
+        indice = int(indice)
+        
+        # Incrementa o uso do equipamento
+        uso_equipamento[equipamento] += 1
+        
+        # Verifica se a capacidade máxima do equipamento foi excedida
+        if uso_equipamento[equipamento] > restricoes_max_horas[equipamento]:
+            punicao += 100  
+        
+        # Verifica se a análise está sendo repetida na mesma hora
+        if analise != '0':  
+            if (analise, indice) in analises_por_hora:
+                punicao += 100  
+            else:
+                analises_por_hora.add((analise, indice))
+            
+            # Verifica se o equipamento é apropriado para a análise
+            if analise in restricoes and equipamento not in restricoes[analise]:
+                punicao += 100  # Equipamento não apropriado para a análise
+                
+    # Calcula o fitness base no cumprimento das restrições, subtraindo as punições
+    fitness_score = 10000 - punicao  # Inicia com uma pontuação alta e subtrai as punições
+    
+    return fitness_score
 
 
 def mutacao(individuo):
     
     analises = list(restricoes.keys())
+    analises.append("0")
     analise_aleatoria = random.choice(analises)
-    equipamentos = list(EQUIP_DIA.keys())
+    equipamentos = list(individuo.keys())
     equipamento_aleatorio = random.choice(equipamentos)
-    if individuo[equipamento_aleatorio] != {"0"}:
-        individuo[equipamento_aleatorio] = {analise_aleatoria}
+    
+    individuo[equipamento_aleatorio] = analise_aleatoria
     return individuo
 
 def crossover(individuo1, individuo2):
     filho = {}
     for equipamento, analise1 in individuo1.items():
         analise2 = individuo2.get(equipamento)
-        if analise2 is not None and random.random() < 0.5 and individuo1[equipamento] != {"0"} and individuo2[equipamento] != {"0"}:
+        if analise2 is not None and random.random() < 0.5:
             filho[equipamento] = analise2
         else:
             filho[equipamento] = analise1
@@ -143,7 +129,7 @@ def algoritmo_genetico(tamanho_populacao, geracoes, tamanho_torneio):
             pai1 = random.choice(populacao)
             pai2 = random.choice(populacao)
             filho = crossover(pai1, pai2)
-            if random.random() < 0.1:  # Chance de mutaçãoS
+            if random.random() < 0.4:  # Chance de mutaçãoS
                 filho = mutacao(filho)
                
             populacao.append(filho)
@@ -154,7 +140,7 @@ def algoritmo_genetico(tamanho_populacao, geracoes, tamanho_torneio):
 individuo = gerar_individuo_aleatorio()
 print(individuo)
 print(fitness(individuo))
-melhor_individuo = algoritmo_genetico(100, 1000, 2)
+melhor_individuo = algoritmo_genetico(300, 1000, 2)
 print(melhor_individuo)
 print(fitness(melhor_individuo))
 print("EQUIPAMENTO\t\t ANALISE")
