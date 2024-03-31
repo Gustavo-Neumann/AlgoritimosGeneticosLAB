@@ -137,12 +137,9 @@ def algoritmo_genetico(tamanho_populacao, geracoes, tamanho_torneio):
     melhor_individuo = max(populacao, key=lambda ind: fitness(ind))
     return melhor_individuo
 
-individuo = gerar_individuo_aleatorio()
-print(individuo)
-print(fitness(individuo))
-melhor_individuo = algoritmo_genetico(300, 1000, 2)
-print(melhor_individuo)
-print(fitness(melhor_individuo))
-print("EQUIPAMENTO\t\t ANALISE")
-for equipamento, dados in melhor_individuo.items():
-    print(f"{equipamento}\t{dados}")
+for i in range(1, 8):
+    melhor_individuo = algoritmo_genetico(100, 1000, 2)
+    print(f"EQUIPAMENTO\t\t ANALISE\t\t DIA {i} ")
+    for equipamento, dados in melhor_individuo.items():
+        print(f"{equipamento}\t{dados}")
+    print(f"\nFitness dia {i}: {fitness(melhor_individuo)}\n")
